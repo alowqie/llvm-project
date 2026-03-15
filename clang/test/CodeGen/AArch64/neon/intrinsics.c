@@ -1704,6 +1704,221 @@ uint64x1_t test_vshl_n_u64(uint64x1_t a) {
 // LLVM:    [[VSHL_N:%.*]] = shl <1 x i64> [[TMP1]], splat (i64 1)
 // LLVM:    ret <1 x i64> [[VSHL_N]]
  return vshl_n_u64(a, 1);
+
+//===------------------------------------------------------===//
+// 2.1.3.2.1 Vector shift right
+//===------------------------------------------------------===//
+
+// LLVM-LABEL: @test_vshr_n_s8( 
+// CIR-LABEL: @test_vshr_n_s8( 
+int8x8_t test_vshr_n_s8(int8x8_t a) {
+// CIR: [[AMT:%.*]] = cir.const #cir.const_vector<[#cir.int<3> : !s8i, #cir.int<3> : !s8i, #cir.int<3> : !s8i,
+// CIR-SAME: #cir.int<3> : !s8i, #cir.int<3> : !s8i, #cir.int<3> : !s8i, #cir.int<3> : !s8i, #cir.int<3> : !s8i]> : !cir.vector<8 x !s8i>
+// CIR: {{%.*}} = cir.shift(right, {{%.*}} : !cir.vector<8 x !s8i>, [[AMT]] : !cir.vector<8 x !s8i>) -> !cir.vector<8 x !s8i>
+
+// LLVM:   [[VSHR_N:%.*]] = ashr <8 x i8> {{.*}}, splat (i8 3)
+// LLVM:   ret <8 x i8> [[VSHR_N]]
+  return vshr_n_s8(a, 3);
+}
+
+// LLVM-LABEL: @test_vshr_n_s16( 
+// CIR-LABEL: @test_vshr_n_s16( 
+int16x4_t test_vshr_n_s16(int16x4_t a) {
+// CIR: [[AMT:%.*]] = cir.const #cir.const_vector<[#cir.int<3> : !s16i, #cir.int<3> : !s16i,
+// CIR-SAME: #cir.int<3> : !s16i, #cir.int<3> : !s16i]> : !cir.vector<4 x !s16i>
+// CIR: {{%.*}} = cir.shift(right, {{%.*}} : !cir.vector<4 x !s16i>, [[AMT]] : !cir.vector<4 x !s16i>) -> !cir.vector<4 x !s16i>
+
+// LLVM:   [[VSHR_N:%.*]] = ashr <4 x i16> {{.*}}, splat (i16 3)
+// LLVM:   ret <4 x i16> [[VSHR_N]]
+  return vshr_n_s16(a, 3);
+}
+
+// LLVM-LABEL: @test_vshr_n_s32( 
+// CIR-LABEL: @test_vshr_n_s32( 
+int32x2_t test_vshr_n_s32(int32x2_t a) {
+// CIR: [[AMT:%.*]] = cir.const #cir.const_vector<[#cir.int<3> : !s32i, #cir.int<3> : !s32i]> : !cir.vector<2 x !s32i>
+// CIR: {{%.*}} = cir.shift(right, {{%.*}} : !cir.vector<2 x !s32i>, [[AMT]] : !cir.vector<2 x !s32i>) -> !cir.vector<2 x !s32i>
+
+// LLVM: [[VSHR_N:%.*]] = ashr <2 x i32> {{.*}}, splat (i32 3)
+// LLVM: ret <2 x i32> [[VSHR_N]]
+  return vshr_n_s32(a, 3);
+}
+
+// LLVM-LABEL: @test_vshr_n_s64( 
+// CIR-LABEL: @test_vshr_n_s64( 
+int64x1_t test_vshr_n_s64(int64x1_t a) {
+// CIR: [[AMT:%.*]] = cir.const #cir.const_vector<[#cir.int<3> : !s64i]> : !cir.vector<1 x !s64i>
+// CIR: {{%.*}} = cir.shift(right, {{%.*}} : !cir.vector<1 x !s64i>, [[AMT]] : !cir.vector<1 x !s64i>) -> !cir.vector<1 x !s64i>
+
+// LLVM: [[VSHR_N:%.*]] = ashr <1 x i64> {{.*}}, splat (i64 3)
+// LLVM: ret <1 x i64> [[VSHR_N]]
+  return vshr_n_s64(a, 3);
+}
+
+// LLVM-LABEL: @test_vshrq_n_s8( 
+// CIR-LABEL: @test_vshrq_n_s8( 
+int8x16_t test_vshrq_n_s8(int8x16_t a) {
+// CIR: [[AMT:%.*]] = cir.const #cir.const_vector<[#cir.int<3> : !s8i, #cir.int<3> : !s8i, #cir.int<3> : !s8i,
+// CIR-SAME: #cir.int<3> : !s8i, #cir.int<3> : !s8i, #cir.int<3> : !s8i, #cir.int<3> : !s8i, #cir.int<3> : !s8i,
+// CIR-SAME: #cir.int<3> : !s8i, #cir.int<3> : !s8i, #cir.int<3> : !s8i, #cir.int<3> : !s8i, #cir.int<3> : !s8i,
+// CIR-SAME: #cir.int<3> : !s8i, #cir.int<3> : !s8i, #cir.int<3> : !s8i]> : !cir.vector<16 x !s8i>
+// CIR: {{%.*}} = cir.shift(right, {{%.*}} : !cir.vector<16 x !s8i>, [[AMT]] : !cir.vector<16 x !s8i>) -> !cir.vector<16 x !s8i>
+
+// LLVM: [[VSHR_N:%.*]] = ashr <16 x i8> {{.*}}, splat (i8 3)
+// LLVM: ret <16 x i8> [[VSHR_N]]
+  return vshrq_n_s8(a, 3);
+}
+
+// LLVM-LABEL: @test_vshrq_n_s16( 
+// CIR-LABEL: @test_vshrq_n_s16( 
+int16x8_t test_vshrq_n_s16(int16x8_t a) {
+// CIR: [[AMT:%.*]] = cir.const #cir.const_vector<[#cir.int<3> : !s16i, #cir.int<3> : !s16i, #cir.int<3> : !s16i,
+// CIR-SAME: #cir.int<3> : !s16i, #cir.int<3> : !s16i, #cir.int<3> : !s16i, #cir.int<3> : !s16i,
+// CIR-SAME: #cir.int<3> : !s16i]> : !cir.vector<8 x !s16i>
+// CIR: {{%.*}} = cir.shift(right, {{%.*}} : !cir.vector<8 x !s16i>, [[AMT]] : !cir.vector<8 x !s16i>) -> !cir.vector<8 x !s16i>
+
+// LLVM: [[VSHR_N:%.*]] = ashr <8 x i16> {{.*}}, splat (i16 3)
+// LLVM: ret <8 x i16> [[VSHR_N]]
+  return vshrq_n_s16(a, 3);
+}
+
+// LLVM-LABEL: @test_vshrq_n_s32( 
+// CIR-LABEL: @test_vshrq_n_s32( 
+int32x4_t test_vshrq_n_s32(int32x4_t a) {
+// CIR: [[AMT:%.*]] = cir.const #cir.const_vector<[#cir.int<3> : !s32i, #cir.int<3> : !s32i,
+// CIR-SAME: #cir.int<3> : !s32i, #cir.int<3> : !s32i]> : !cir.vector<4 x !s32i>
+// CIR: {{%.*}} = cir.shift(right, {{%.*}} : !cir.vector<4 x !s32i>, [[AMT]] : !cir.vector<4 x !s32i>) -> !cir.vector<4 x !s32i>
+
+// LLVM: [[VSHR_N:%.*]] = ashr <4 x i32> {{.*}}, splat (i32 3)
+// LLVM: ret <4 x i32> [[VSHR_N]]   
+  return vshrq_n_s32(a, 3);
+}
+
+// LLVM-LABEL: @test_vshrq_n_s64( 
+// CIR-LABEL: @test_vshrq_n_s64( 
+int64x2_t test_vshrq_n_s64(int64x2_t a) {
+// CIR: [[AMT:%.*]] = cir.const #cir.const_vector<[#cir.int<3> : !s64i, #cir.int<3> : !s64i]> : !cir.vector<2 x !s64i>
+// CIR: {{%.*}} = cir.shift(right, {{%.*}} : !cir.vector<2 x !s64i>, [[AMT]] : !cir.vector<2 x !s64i>) -> !cir.vector<2 x !s64i>
+
+// LLVM: [[VSHR_N:%.*]] = ashr <2 x i64> {{.*}}, splat (i64 3)
+// LLVM: ret <2 x i64> [[VSHR_N]]
+  return vshrq_n_s64(a, 3);
+}
+
+// LLVM-LABEL: @test_vshr_n_u8( 
+// CIR-LABEL: @test_vshr_n_u8( 
+uint8x8_t test_vshr_n_u8(uint8x8_t a) {
+// CIR: [[AMT:%.*]] = cir.const #cir.const_vector<[#cir.int<3> : !u8i, #cir.int<3> : !u8i, #cir.int<3> : !u8i,
+// CIR-SAME: #cir.int<3> : !u8i, #cir.int<3> : !u8i, #cir.int<3> : !u8i, #cir.int<3> : !u8i, #cir.int<3> : !u8i]> : !cir.vector<8 x !u8i>
+// CIR: {{%.*}} = cir.shift(right, {{%.*}} : !cir.vector<8 x !u8i>, [[AMT]] : !cir.vector<8 x !u8i>) -> !cir.vector<8 x !u8i>
+
+// LLVM: [[VSHR_N:%.*]] = lshr <8 x i8> {{.*}}, splat (i8 3)
+// LLVM: ret <8 x i8> [[VSHR_N]]
+  return vshr_n_u8(a, 3);
+}
+
+// LLVM-LABEL: @test_vshr_n_u16( 
+// CIR-LABEL: @test_vshr_n_u16( 
+uint16x4_t test_vshr_n_u16(uint16x4_t a) {
+// CIR: [[AMT:%.*]] = cir.const #cir.const_vector<[#cir.int<3> : !u16i, #cir.int<3> : !u16i,
+// CIR-SAME: #cir.int<3> : !u16i, #cir.int<3> : !u16i]> : !cir.vector<4 x !u16i>
+// CIR: {{%.*}} = cir.shift(right, {{%.*}} : !cir.vector<4 x !u16i>, [[AMT]] : !cir.vector<4 x !u16i>) -> !cir.vector<4 x !u16i>
+
+// LLVM: [[VSHR_N:%.*]] = lshr <4 x i16> {{.*}}, splat (i16 3)
+// LLVM: ret <4 x i16> [[VSHR_N]] 
+  return vshr_n_u16(a, 3);
+}
+
+// LLVM-LABEL: @test_vshr_n_u32( 
+// CIR-LABEL: @test_vshr_n_u32( 
+uint32x2_t test_vshr_n_u32(uint32x2_t a) {
+// CIR: [[AMT:%.*]] = cir.const #cir.const_vector<[#cir.int<3> : !u32i, #cir.int<3> : !u32i]> : !cir.vector<2 x !u32i>
+// CIR: {{%.*}} = cir.shift(right, {{%.*}} : !cir.vector<2 x !u32i>, [[AMT]] : !cir.vector<2 x !u32i>) -> !cir.vector<2 x !u32i>
+
+// LLVM: [[VSHR_N:%.*]] = lshr <2 x i32> {{.*}}, splat (i32 3)
+// LLVM: ret <2 x i32> [[VSHR_N]]
+  return vshr_n_u32(a, 3);
+}
+
+// LLVM-LABEL: @test_vshr_n_u64( 
+// CIR-LABEL: @test_vshr_n_u64( 
+uint64x1_t test_vshr_n_u64(uint64x1_t a) {
+// CIR: [[AMT:%.*]] = cir.const #cir.const_vector<[#cir.int<3> : !u64i]> : !cir.vector<1 x !u64i>
+  // CIR: {{%.*}} = cir.shift(right, {{%.*}} : !cir.vector<1 x !u64i>, [[AMT]] : !cir.vector<1 x !u64i>) -> !cir.vector<1 x !u64i>
+
+// LLVM: [[VSHR_N:%.*]] = lshr <1 x i64> {{.*}}, splat (i64 3)
+// ret <1 x i64> [[VSHR_N]]
+  return vshr_n_u64(a, 3);
+}
+
+// LLVM-LABEL: @test_vshrq_n_u8( 
+// CIR-LABEL: @test_vshrq_n_u8( 
+uint8x16_t test_vshrq_n_u8(uint8x16_t a) {
+// CIR: [[AMT:%.*]] = cir.const #cir.const_vector<[#cir.int<3> : !u8i, #cir.int<3> : !u8i, #cir.int<3> : !u8i,
+// CIR-SAME: #cir.int<3> : !u8i, #cir.int<3> : !u8i, #cir.int<3> : !u8i, #cir.int<3> : !u8i, #cir.int<3> : !u8i,
+// CIR-SAME: #cir.int<3> : !u8i, #cir.int<3> : !u8i, #cir.int<3> : !u8i, #cir.int<3> : !u8i,
+// CIR-SAME: #cir.int<3> : !u8i, #cir.int<3> : !u8i, #cir.int<3> : !u8i, #cir.int<3> : !u8i]> : !cir.vector<16 x !u8i>
+// CIR: {{%.*}} = cir.shift(right, {{%.*}} : !cir.vector<16 x !u8i>, [[AMT]] : !cir.vector<16 x !u8i>) -> !cir.vector<16 x !u8i>
+
+// LLVM: [[VSHR_N:%.*]] = lshr <16 x i8> {{.*}}, splat (i8 3)
+// LLVM: ret <16 x i8> [[VSHR_N]]
+  return vshrq_n_u8(a, 3);
+}
+
+// LLVM-LABEL: @test_vshrq_n_u16( 
+// CIR-LABEL: @test_vshrq_n_u16( 
+uint16x8_t test_vshrq_n_u16(uint16x8_t a) {
+// CIR: [[AMT:%.*]] = cir.const #cir.const_vector<[#cir.int<3> : !u16i, #cir.int<3> : !u16i, #cir.int<3> : !u16i,
+// CIR-SAME: #cir.int<3> : !u16i, #cir.int<3> : !u16i, #cir.int<3> : !u16i, #cir.int<3> : !u16i,
+// CIR-SAME: #cir.int<3> : !u16i]> : !cir.vector<8 x !u16i>
+// CIR: {{%.*}} = cir.shift(right, {{%.*}} : !cir.vector<8 x !u16i>, [[AMT]] : !cir.vector<8 x !u16i>) -> !cir.vector<8 x !u16i>
+
+// LLVM: [[VSHR_N:%.*]] = lshr <8 x i16> {{.*}}, splat (i16 3)
+// LLVM: ret <8 x i16> [[VSHR_N]]
+  return vshrq_n_u16(a, 3);
+}
+
+// LLVM-LABEL: @test_vshrq_n_u32( 
+// CIR-LABEL: @test_vshrq_n_u32( 
+uint32x4_t test_vshrq_n_u32(uint32x4_t a) {
+// CIR: [[AMT:%.*]] = cir.const #cir.const_vector<[#cir.int<3> : !u32i, #cir.int<3> : !u32i,
+// CIR-SAME: #cir.int<3> : !u32i, #cir.int<3> : !u32i]> : !cir.vector<4 x !u32i>
+// CIR: {{%.*}} = cir.shift(right, {{%.*}} : !cir.vector<4 x !u32i>, [[AMT]] : !cir.vector<4 x !u32i>) -> !cir.vector<4 x !u32i>
+
+// LLVM: [[VSHR_N:%.*]] = lshr <4 x i32> {{.*}}, splat (i32 3)
+// LLVM: ret <4 x i32> [[VSHR_N]]
+  return vshrq_n_u32(a, 3);
+}
+
+// LLVM-LABEL: @test_vshrq_n_u64( 
+// CIR-LABEL: @test_vshrq_n_u64( 
+uint64x2_t test_vshrq_n_u64(uint64x2_t a) {
+// CIR: [[AMT:%.*]] = cir.const #cir.const_vector<[#cir.int<3> : !u64i, #cir.int<3> : !u64i]> : !cir.vector<2 x !u64i>
+// CIR: {{%.*}} = cir.shift(right, {{%.*}} : !cir.vector<2 x !u64i>, [[AMT]] : !cir.vector<2 x !u64i>) -> !cir.vector<2 x !u64i>
+
+// LLVM: [[VSHR_N:%.*]] = lshr <2 x i64> {{.*}}, splat (i64 3)
+// LLVM: ret <2 x i64> [[VSHR_N]]
+  return vshrq_n_u64(a, 3);
+}
+
+// LLVM-LABEL: @test_vshrd_n_s64( 
+// CIR-LABEL: @test_vshrd_n_s64( 
+int64_t test_vshrd_n_s64(int64_t a) {
+  // CIR: {{%.*}} = cir.shift(right, {{%.*}} : !s64i, {{%.*}} : !s64i) -> !s64i
+
+  // LLVM:   [[SHRD_N:%.*]] = ashr i64 {{.*}}, 1
+  // LLVM:   ret i64 [[SHRD_N]]
+  return (int64_t)vshrd_n_s64(a, 1);
+}
+
+// LLVM-LABEL: @test_vshrd_n_u64( 
+// CIR-LABEL: @test_vshrd_n_u64( 
+uint64_t test_vshrd_n_u64(uint64_t a) {
+  // CIR: {{.*}} = cir.const #cir.int<0> : !u64i
+  // CIR: cir.return {{.*}} : !u64i
+
+  // LLVM:   ret i64 0
+  return (uint64_t)vshrd_n_u64(a, 64);
 }
 
 //===------------------------------------------------------===//

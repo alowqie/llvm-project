@@ -180,6 +180,63 @@ static mlir::Value emitNeonSplat(CIRGenBuilderTy &builder, mlir::Location loc,
   int64_t laneCst = getIntValueFromConstOp(lane);
   llvm::SmallVector<int64_t, 4> shuffleMask(resEltCnt, laneCst);
   return builder.createVecShuffle(loc, v, shuffleMask);
+  
+// Build a constant shift amount vector of `vecTy` to shift a vector
+// Here `shitfVal` is a constant integer that will be splated into a
+// a const vector of `vecTy` which is the return of this function
+static mlir::Value emitNeonShiftVector(CIRGenBuilderTy &builder,
+                                       mlir::Value shiftVal,
+                                       cir::VectorType vecTy,
+                                       mlir::Location loc, bool neg) {
+  int shiftAmt = getIntValueFromConstOp(shiftVal);
+  if (neg)
+    shiftAmt = -shiftAmt;
+  llvm::SmallVector<mlir::Attribute> vecAttr{
+      vecTy.getSize(),
+      // ConstVectorAttr requires cir::IntAttr
+      cir::IntAttr::get(vecTy.getElementType(), shiftAmt)};
+  cir::ConstVectorAttr constVecAttr = cir::ConstVectorAttr::get(
+      vecTy, mlir::ArrayAttr::get(builder.getContext(), vecAttr));
+  return cir::ConstantOp::create(builder, loc, constVecAttr);
+}
+
+// Build ShiftOp of vector type whose shift amount is a vector built
+// from a constant integer using `emitNeonShiftVector` function
+static mlir::Value
+emitCommonNeonShift(CIRGenBuilderTy &builder, mlir::Location loc,
+                    cir::VectorType resTy, mlir::Value shifTgt,
+                    mlir::Value shiftAmt, bool shiftLeft, bool negAmt = false) {
+  shiftAmt = emitNeonShiftVector(builder, shiftAmt, resTy, loc, negAmt);
+  return cir::ShiftOp::create(builder, loc, resTy,
+                              builder.createBitcast(shifTgt, resTy), shiftAmt,
+                              shiftLeft);
+}
+
+// Right-shift a vector by a constant.
+static mlir::Value emitNeonRShiftImm(CIRGenFunction &cgf, mlir::Value shiftVec,
+                                     mlir::Value shiftVal,
+                                     cir::VectorType vecTy, bool usgn,
+                                     mlir::Location loc) {
+  CIRGenBuilderTy &builder = cgf.getBuilder();
+  int64_t shiftAmt = getIntValueFromConstOp(shiftVal);
+  int eltSize =
+      cgf.cgm.getDataLayout().getTypeSizeInBits(vecTy.getElementType());
+
+  shiftVec = builder.createBitcast(shiftVec, vecTy);
+  // lshr/ashr are undefined when the shift amount is equal to the vector
+  // element size.
+  if (shiftAmt == eltSize) {
+    if (usgn) {
+      // Right-shifting an unsigned value by its size yields 0.
+      return builder.getZero(loc, vecTy);
+    }
+    // Right-shifting a signed value by its size is equivalent
+    // to a shift of size-1.
+    --shiftAmt;
+    shiftVal = builder.getConstInt(loc, vecTy.getElementType(), shiftAmt);
+  }
+  return emitCommonNeonShift(builder, loc, vecTy, shiftVec, shiftVal,
+                             false /* right shift */);
 }
 
 /// Build a constant shift amount vector of `vecTy` to shift a vector
@@ -238,6 +295,7 @@ static mlir::Value emitCommonNeonBuiltinExpr(
 
   // Determine the type of this overloaded NEON intrinsic.
   NeonTypeFlags neonType(neonTypeConst->getZExtValue());
+  bool isUnsigned = neonType.isUnsigned();
   const bool hasLegalHalfType = cgf.getTarget().hasFastHalfType();
 
   // The value of allowBFloatArgsAndRet is true for AArch64, but it should
@@ -461,8 +519,13 @@ static mlir::Value emitCommonNeonBuiltinExpr(
                                /*shiftLeft=*/true);
   case NEON::BI__builtin_neon_vshll_n_v:
   case NEON::BI__builtin_neon_vshrn_n_v:
+    cgf.cgm.errorNYI(expr->getSourceRange(),
+                     std::string("unimplemented AArch64 builtin call: ") +
+                         ctx.BuiltinInfo.getName(builtinID));
+    return mlir::Value{};
   case NEON::BI__builtin_neon_vshr_n_v:
   case NEON::BI__builtin_neon_vshrq_n_v:
+    return emitNeonRShiftImm(cgf, ops[0], ops[1], vTy, isUnsigned, loc);
   case NEON::BI__builtin_neon_vst1_v:
   case NEON::BI__builtin_neon_vst1q_v:
   case NEON::BI__builtin_neon_vst2_v:
@@ -2210,8 +2273,22 @@ CIRGenFunction::emitAArch64BuiltinExpr(unsigned builtinID, const CallExpr *expr,
     assert(amt && "Expected argument to be a constant");
     return builder.createShiftLeft(loc, ops[0], amt->getZExtValue());
   }
-  case NEON::BI__builtin_neon_vshrd_n_s64:
-  case NEON::BI__builtin_neon_vshrd_n_u64:
+  case NEON::BI__builtin_neon_vshrd_n_s64: {
+    std::optional<llvm::APSInt> amt =
+        expr->getArg(1)->getIntegerConstantExpr(getContext());
+    assert(amt && "Expected argument to be a constant");
+    uint64_t bits = std::min(static_cast<uint64_t>(63), amt->getZExtValue());
+    return builder.createShiftRight(loc, ops[0], bits);
+  }
+  case NEON::BI__builtin_neon_vshrd_n_u64: {
+    std::optional<llvm::APSInt> amt =
+        expr->getArg(1)->getIntegerConstantExpr(getContext());
+    assert(amt && "Expected argument to be a constant");
+    uint64_t shiftAmt = amt->getZExtValue();
+    if (shiftAmt == 64)
+      return builder.getConstInt(loc, builder.getUInt64Ty(), 0);
+    return builder.createShiftRight(loc, ops[0], shiftAmt);
+  }
   case NEON::BI__builtin_neon_vsrad_n_s64:
   case NEON::BI__builtin_neon_vsrad_n_u64:
   case NEON::BI__builtin_neon_vqdmlalh_lane_s16:
