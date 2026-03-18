@@ -461,16 +461,6 @@ public:
     return getConstantInt(loc, getUInt64Ty(), c);
   }
 
-  /// Create constant nullptr for pointer-to-data-member type ty.
-  cir::ConstantOp getNullDataMemberPtr(cir::DataMemberType ty,
-                                       mlir::Location loc) {
-    return cir::ConstantOp::create(*this, loc, getNullDataMemberAttr(ty));
-  }
-
-  cir::ConstantOp getNullMethodPtr(cir::MethodType ty, mlir::Location loc) {
-    return cir::ConstantOp::create(*this, loc, getNullMethodAttr(ty));
-  }
-
   cir::ConstantOp getZero(mlir::Location loc, mlir::Type ty) {
     // TODO: dispatch creation for primitive types.
     assert((mlir::isa<cir::RecordType>(ty) || mlir::isa<cir::ArrayType>(ty) ||

@@ -187,10 +187,8 @@ static mlir::Value emitNeonSplat(CIRGenBuilderTy &builder, mlir::Location loc,
 static mlir::Value emitNeonShiftVector(CIRGenBuilderTy &builder,
                                        mlir::Value shiftVal,
                                        cir::VectorType vecTy,
-                                       mlir::Location loc, bool neg) {
+                                       mlir::Location loc) {
   int shiftAmt = getIntValueFromConstOp(shiftVal);
-  if (neg)
-    shiftAmt = -shiftAmt;
   llvm::SmallVector<mlir::Attribute> vecAttr{
       vecTy.getSize(),
       // ConstVectorAttr requires cir::IntAttr
@@ -202,11 +200,12 @@ static mlir::Value emitNeonShiftVector(CIRGenBuilderTy &builder,
 
 // Build ShiftOp of vector type whose shift amount is a vector built
 // from a constant integer using `emitNeonShiftVector` function
-static mlir::Value
-emitCommonNeonShift(CIRGenBuilderTy &builder, mlir::Location loc,
-                    cir::VectorType resTy, mlir::Value shifTgt,
-                    mlir::Value shiftAmt, bool shiftLeft, bool negAmt = false) {
-  shiftAmt = emitNeonShiftVector(builder, shiftAmt, resTy, loc, negAmt);
+static mlir::Value emitCommonNeonShift(CIRGenBuilderTy &builder,
+                                       mlir::Location loc,
+                                       cir::VectorType resTy,
+                                       mlir::Value shifTgt,
+                                       mlir::Value shiftAmt, bool shiftLeft) {
+  shiftAmt = emitNeonShiftVector(builder, shiftAmt, resTy, loc);
   return cir::ShiftOp::create(builder, loc, resTy,
                               builder.createBitcast(shifTgt, resTy), shiftAmt,
                               shiftLeft);
@@ -295,7 +294,7 @@ static mlir::Value emitCommonNeonBuiltinExpr(
 
   // Determine the type of this overloaded NEON intrinsic.
   NeonTypeFlags neonType(neonTypeConst->getZExtValue());
-  bool isUnsigned = neonType.isUnsigned();
+  const bool isUnsigned = neonType.isUnsigned();
   const bool hasLegalHalfType = cgf.getTarget().hasFastHalfType();
 
   // The value of allowBFloatArgsAndRet is true for AArch64, but it should
@@ -2277,14 +2276,15 @@ CIRGenFunction::emitAArch64BuiltinExpr(unsigned builtinID, const CallExpr *expr,
     std::optional<llvm::APSInt> amt =
         expr->getArg(1)->getIntegerConstantExpr(getContext());
     assert(amt && "Expected argument to be a constant");
-    uint64_t bits = std::min(static_cast<uint64_t>(63), amt->getZExtValue());
-    return builder.createShiftRight(loc, ops[0], bits);
+    return builder.createShiftRight(
+        loc, ops[0], std::min(static_cast<uint64_t>(63), amt->getZExtValue()));
   }
   case NEON::BI__builtin_neon_vshrd_n_u64: {
     std::optional<llvm::APSInt> amt =
         expr->getArg(1)->getIntegerConstantExpr(getContext());
     assert(amt && "Expected argument to be a constant");
     uint64_t shiftAmt = amt->getZExtValue();
+    // Right-shifting an unsigned value by its size yields 0.
     if (shiftAmt == 64)
       return builder.getConstInt(loc, builder.getUInt64Ty(), 0);
     return builder.createShiftRight(loc, ops[0], shiftAmt);

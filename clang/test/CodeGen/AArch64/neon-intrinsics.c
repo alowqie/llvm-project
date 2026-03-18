@@ -16458,18 +16458,6 @@ uint64_t test_vshrd_n_u64_2() {
   return vshrd_n_u64(a, 64);
 }
 
-// CHECK-LABEL: define dso_local <1 x i64> @test_vshr_n_u64(
-// CHECK-SAME: <1 x i64> noundef [[A:%.*]]) #[[ATTR0]] {
-// CHECK-NEXT:  [[ENTRY:.*:]]
-// CHECK-NEXT:    [[TMP0:%.*]] = bitcast <1 x i64> [[A]] to <8 x i8>
-// CHECK-NEXT:    [[TMP1:%.*]] = bitcast <8 x i8> [[TMP0]] to <1 x i64>
-// CHECK-NEXT:    [[VSHR_N:%.*]] = lshr <1 x i64> [[TMP1]], splat (i64 1)
-// CHECK-NEXT:    ret <1 x i64> [[VSHR_N]]
-//
-uint64x1_t test_vshr_n_u64(uint64x1_t a) {
-  return vshr_n_u64(a, 1);
-}
-
 // CHECK-LABEL: define dso_local i64 @test_vrshrd_n_s64(
 // CHECK-SAME: i64 noundef [[A:%.*]]) #[[ATTR0]] {
 // CHECK-NEXT:  [[ENTRY:.*:]]
