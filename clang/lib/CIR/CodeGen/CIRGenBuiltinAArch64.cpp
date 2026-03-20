@@ -188,14 +188,11 @@ static mlir::Value emitNeonShiftVector(CIRGenBuilderTy &builder,
                                        mlir::Value shiftVal,
                                        cir::VectorType vecTy,
                                        mlir::Location loc) {
-  int shiftAmt = getIntValueFromConstOp(shiftVal);
-  llvm::SmallVector<mlir::Attribute> vecAttr{
-      vecTy.getSize(),
-      // ConstVectorAttr requires cir::IntAttr
-      cir::IntAttr::get(vecTy.getElementType(), shiftAmt)};
-  cir::ConstVectorAttr constVecAttr = cir::ConstVectorAttr::get(
-      vecTy, mlir::ArrayAttr::get(builder.getContext(), vecAttr));
-  return cir::ConstantOp::create(builder, loc, constVecAttr);
+  mlir::Type eltTy = vecTy.getElementType();
+  if (shiftVal.getType() != eltTy) {
+    shiftVal = builder.createIntCast(shiftVal, eltTy);
+  }
+  return cir::VecSplatOp::create(builder, loc, vecTy, shiftVal);
 }
 
 // Build ShiftOp of vector type whose shift amount is a vector built
