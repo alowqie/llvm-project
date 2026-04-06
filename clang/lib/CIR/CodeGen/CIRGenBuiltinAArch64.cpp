@@ -182,9 +182,9 @@ static mlir::Value emitNeonSplat(CIRGenBuilderTy &builder, mlir::Location loc,
   return builder.createVecShuffle(loc, v, shuffleMask);
 }
 
-// Build a constant shift amount vector of `vecTy` to shift a vector
-// Here `shitfVal` is a constant integer that will be splated into a
-// a const vector of `vecTy` which is the return of this function
+/// Build a constant shift amount vector of `vecTy` to shift a vector
+/// Here `shitfVal` is a constant integer that will be broadcast into a
+/// a const vector of `vecTy` which is the return value of this function
 static mlir::Value emitNeonShiftVector(CIRGenBuilderTy &builder,
                                        mlir::Value shiftVal,
                                        cir::VectorType vecTy,
@@ -196,8 +196,6 @@ static mlir::Value emitNeonShiftVector(CIRGenBuilderTy &builder,
   return cir::VecSplatOp::create(builder, loc, vecTy, shiftVal);
 }
 
-// Build ShiftOp of vector type whose shift amount is a vector built
-// from a constant integer using `emitNeonShiftVector` function
 static mlir::Value emitCommonNeonShift(CIRGenBuilderTy &builder,
                                        mlir::Location loc,
                                        cir::VectorType resTy,
@@ -232,32 +230,8 @@ static mlir::Value emitNeonRShiftImm(CIRGenFunction &cgf, mlir::Value shiftVec,
     --shiftAmt;
     shiftVal = builder.getConstInt(loc, vecTy.getElementType(), shiftAmt);
   }
-  return emitCommonNeonShift(builder, loc, vecTy, shiftVec, shiftVal, /*shiftLeft=*/false);
-}
-
-/// Build a constant shift amount vector of `vecTy` to shift a vector
-/// Here `shitfVal` is a constant integer that will be broadcast into a
-/// a const vector of `vecTy` which is the return value of this function
-static mlir::Value emitNeonShiftVector(CIRGenBuilderTy &builder,
-                                       mlir::Value shiftVal,
-                                       cir::VectorType vecTy,
-                                       mlir::Location loc) {
-  mlir::Type eltTy = vecTy.getElementType();
-  if (shiftVal.getType() != eltTy) {
-    shiftVal = builder.createIntCast(shiftVal, eltTy);
-  }
-  return cir::VecSplatOp::create(builder, loc, vecTy, shiftVal);
-}
-
-static mlir::Value emitCommonNeonShift(CIRGenBuilderTy &builder,
-                                       mlir::Location loc,
-                                       cir::VectorType resTy,
-                                       mlir::Value shifTgt,
-                                       mlir::Value shiftAmt, bool shiftLeft) {
-  shiftAmt = emitNeonShiftVector(builder, shiftAmt, resTy, loc);
-  return cir::ShiftOp::create(builder, loc, resTy,
-                              builder.createBitcast(shifTgt, resTy), shiftAmt,
-                              shiftLeft);
+  return emitCommonNeonShift(builder, loc, vecTy, shiftVec, shiftVal,
+                             /*shiftLeft=*/false);
 }
 
 static cir::VectorType getIntVecFromVecTy(CIRGenBuilderTy &builder,
