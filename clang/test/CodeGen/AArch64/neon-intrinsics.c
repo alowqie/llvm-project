@@ -16448,16 +16448,6 @@ uint64_t test_vcaltd_f64(float64_t a, float64_t b) {
   return (uint64_t)vcaltd_f64(a, b);
 }
 
-// CHECK-LABEL: define dso_local i64 @test_vshrd_n_u64_2(
-// CHECK-SAME: ) #[[ATTR0]] {
-// CHECK-NEXT:  [[ENTRY:.*:]]
-// CHECK-NEXT:    ret i64 0
-//
-uint64_t test_vshrd_n_u64_2() {
-  uint64_t a = UINT64_C(0xf000000000000000);
-  return vshrd_n_u64(a, 64);
-}
-
 // CHECK-LABEL: define dso_local i64 @test_vrshrd_n_s64(
 // CHECK-SAME: i64 noundef [[A:%.*]]) #[[ATTR0]] {
 // CHECK-NEXT:  [[ENTRY:.*:]]

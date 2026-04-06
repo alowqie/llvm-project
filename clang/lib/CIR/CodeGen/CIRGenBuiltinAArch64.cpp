@@ -180,7 +180,8 @@ static mlir::Value emitNeonSplat(CIRGenBuilderTy &builder, mlir::Location loc,
   int64_t laneCst = getIntValueFromConstOp(lane);
   llvm::SmallVector<int64_t, 4> shuffleMask(resEltCnt, laneCst);
   return builder.createVecShuffle(loc, v, shuffleMask);
-  
+}
+
 // Build a constant shift amount vector of `vecTy` to shift a vector
 // Here `shitfVal` is a constant integer that will be splated into a
 // a const vector of `vecTy` which is the return of this function
@@ -231,8 +232,7 @@ static mlir::Value emitNeonRShiftImm(CIRGenFunction &cgf, mlir::Value shiftVec,
     --shiftAmt;
     shiftVal = builder.getConstInt(loc, vecTy.getElementType(), shiftAmt);
   }
-  return emitCommonNeonShift(builder, loc, vecTy, shiftVec, shiftVal,
-                             false /* right shift */);
+  return emitCommonNeonShift(builder, loc, vecTy, shiftVec, shiftVal, /*shiftLeft=*/false);
 }
 
 /// Build a constant shift amount vector of `vecTy` to shift a vector
